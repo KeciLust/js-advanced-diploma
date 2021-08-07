@@ -23,8 +23,8 @@ export default class Team {
     const p = generateTeam(shuffle(this.allowedTypesPlayer), this.maxLevel, this.characterCount);
     if (GameState.char) {
       GameState.char.forEach((el) => {
-        el.character.defence = Math.max(el.character.defence, el.character.defence * (1.8 - el.character.health / 100)) + 5;
-        el.character.attack = Math.max(el.character.attack, el.character.attack * (1.8 - el.character.health / 100)) + 5;
+        el.character.defence = Math.round(Math.max(el.character.defence, el.character.defence * (1.8 - (1 - el.character.health / 100))));
+        el.character.attack = Math.round(Math.max(el.character.attack, el.character.attack * (1.8 - (1 - el.character.health / 100))));
         el.character.health += 80;
         el.character.level++;
         if (el.character.health > 100) {

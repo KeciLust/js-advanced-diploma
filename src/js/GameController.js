@@ -45,10 +45,11 @@ export default class GameController {
     this.gamePlay.cellLeaveListeners = [];
     GameState.level++;
     GameState.maxLevel++;
+
     if (GameState.level > 4) { GameState.level = 1; }
     let count;
     if (GameState.level === 1 || GameState.level === 2) { count = 1; } else { count = 2; }
-    const newChar = new Team(count, GameState.level, [new Bowman(), new Magician(), new Swordsman()]).ranking();
+    const newChar = new Team(count, GameState.maxLevel, [new Bowman(), new Magician(), new Swordsman()]).ranking();
     GameState.char = newChar;
     this.gamePlay.drawUi(`${Object.values(themes)[GameState.level]}`);
     this.gamePlay.redrawPositions(GameState.char);
@@ -167,12 +168,12 @@ export default class GameController {
     }
   }
 
-  static possible(stepAttack, index) {
+  static possible(step, index) {
     const arr = [];
-    for (let i = 0; i <= stepAttack * 2; i++) {
-      let n = index - stepAttack * 9 + i * 8;
-      const x = index - stepAttack * 8 + i * 8;
-      for (let y = 0; y <= stepAttack * 2; y++) {
+    for (let i = 0; i <= step * 2; i++) {
+      let n = index - step * 9 + i * 8;
+      const x = index - step * 8 + i * 8;
+      for (let y = 0; y <= step * 2; y++) {
         if (Math.trunc(n / 8) === Math.trunc(x / 8) && n >= 0 && n <= 63) {
           arr.push(n++);
         } else { n++; }
@@ -185,7 +186,7 @@ export default class GameController {
   paceCom() {
     const arrCom = [];
     const arrPlay = [];
-    let arr = [];
+    let arrAttack = [];
     GameState.char.forEach((el) => {
       if (el.character.type === 'vampire' || el.character.type === 'undead' || el.character.type === 'daemon') {
         arrCom.push(el);
@@ -204,32 +205,38 @@ export default class GameController {
       GameState.level++;
       this.initSec();
       return;
-    } if (arrPlay === 0) {
-      GamePlay.showMessage('Вы проиграли!');
-      return;
     }
-    const chooseCom = shuffle(arrCom);
-
+    const [chooseCom] = shuffle(arrCom);
     arrPlay.forEach((el) => {
-      if (GameController.possible(chooseCom[0].character.stepAttack, chooseCom[0].position).find((i) => i === el.position)) {
-        arr.push(el);
+      if (GameController.possible(chooseCom.character.stepAttack, chooseCom.position).find((i) => i === el.position)) {
+        arrAttack.push(el);
       }
     });
-    if (arr.length > 0) {
-      arr = shuffle(arr);
-
-      const damage = Math.max(chooseCom[0].character.attack - arr[0].character.defence, chooseCom[0].character.attack * 0.1);
-      arr[0].character.health -= damage;
-      this.gamePlay.showDamage(arr[0].position, damage).then(() => {
-        if (arr[0].character.health <= 0) {
-          GameState.char.splice(GameState.char.indexOf(arr[0]), 1);
+    if (arrAttack.length > 0) {
+      [arrAttack] = shuffle(arrAttack);
+      const damage = Math.round(Math.max(chooseCom.character.attack - arrAttack.character.defence, chooseCom.character.attack * 0.1));
+      arrAttack.character.health -= damage;
+      this.gamePlay.showDamage(arrAttack.position, damage).then(() => {
+        if (arrAttack.character.health <= 0) {
+          GameState.char.splice(GameState.char.indexOf(arrAttack), 1);
+          if (arrPlay.length === 1) {
+            GamePlay.showMessage('Вы проиграли!');
+            GamePlay.showMessage(`вы набрали ${GameState.scores} баллов!`);
+            GamePlay.showMessage('Начните новую игру!');
+            return;
+          }
         }
         this.gamePlay.redrawPositions(GameState.char);
       });
     } else {
-      const moves = shuffle(GameController.possible(chooseCom[0].character.stepMoves, chooseCom[0].position));
+      const moves = shuffle(GameController.possible(chooseCom.character.stepMoves, chooseCom.position));
+      [...arrPlay, ...arrCom].forEach((el) => {
+        if (GameController.possible(chooseCom.character.stepMoves, chooseCom.position).find((i) => i === el.position)) {
+          moves.splice(el.position, 1);
+        }
+      });
       // eslint-disable-next-line prefer-destructuring
-      chooseCom[0].position = moves[0];
+      chooseCom.position = moves[0];
       this.gamePlay.redrawPositions(GameState.char);
     }
 
