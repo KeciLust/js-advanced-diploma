@@ -5,6 +5,10 @@ import themes from './themes';
 import cursors from './cursors';
 import GameState from './GameState';
 import GamePlay from './GamePlay';
+import Bowman from './Persons/Bowman';
+import Swordsman from './Persons/Swordsman';
+import Magician from './Persons/Magician';
+import { shuffle } from './generators';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -16,10 +20,16 @@ export default class GameController {
     this.gamePlay.cellClickListeners = [];
     this.gamePlay.cellEnterListeners = [];
     this.gamePlay.cellLeaveListeners = [];
+    GameState.char = null;
     GameState.from({
-      char: new Team(5, 5).ranking(), level: 0, step: 'user', state: null, scores: 0,
+      level: 1,
+      char: new Team(2, 1, [new Bowman(), new Swordsman()]).ranking(),
+      step: 'user',
+      state: null,
+      scores: 0,
+      maxLevel: 1,
     });
-    this.gamePlay.drawUi(`${Object.values(themes)[GameState.level]}`);
+    this.gamePlay.drawUi(`${Object.values(themes)[GameState.level - 1]}`);
     this.gamePlay.redrawPositions(GameState.char);
     this.gamePlay.addNewGameListener(this.init.bind(this));
     this.gamePlay.addLoadGameListener(this.onLoad.bind(this));
@@ -33,6 +43,13 @@ export default class GameController {
     this.gamePlay.cellClickListeners = [];
     this.gamePlay.cellEnterListeners = [];
     this.gamePlay.cellLeaveListeners = [];
+    GameState.level++;
+    GameState.maxLevel++;
+    if (GameState.level > 4) { GameState.level = 1; }
+    let count;
+    if (GameState.level === 1 || GameState.level === 2) { count = 1; } else { count = 2; }
+    const newChar = new Team(count, GameState.level, [new Bowman(), new Magician(), new Swordsman()]).ranking();
+    GameState.char = newChar;
     this.gamePlay.drawUi(`${Object.values(themes)[GameState.level]}`);
     this.gamePlay.redrawPositions(GameState.char);
     this.gamePlay.addNewGameListener(this.init.bind(this));
@@ -68,57 +85,7 @@ export default class GameController {
     const itemPlay = GameState.char.find(play);
     const itemCom = GameState.char.find(com);
     if (GameState.step === 'com') {
-      const arrCom = [];
-      const arrPlay = [];
-      let arr = [];
-      GameState.char.forEach((el) => {
-        if (el.character.type === 'vampire' || el.character.type === 'undead' || el.character.type === 'daemon') {
-          arrCom.push(el);
-        }
-      });
-      GameState.char.forEach((el) => {
-        if (el.character.type === 'bowman' || el.character.type === 'magician' || el.character.type === 'swordsman') {
-          arrPlay.push(el);
-        }
-      });
-      if (arrCom.length === 0) {
-        arrPlay.forEach((el) => {
-          GameState.scores += el.character.health;
-        });
-        GamePlay.showMessage(`Вы выиграли и набрали всего ${GameState.scores} очков!`);
-        GameState.level++;
-        this.initSec();
-        return;
-      } if (arrPlay === 0) {
-        GamePlay.showMessage('Вы проиграли!');
-        return;
-      }
-      const chooseCom = Team.shuffle(arrCom);
-
-      arrPlay.forEach((el) => {
-        if (GameController.possible(chooseCom[0].character.stepAttack, chooseCom[0].position).find((i) => i === el.position)) {
-          arr.push(el);
-        }
-      });
-      if (arr.length > 0) {
-        arr = Team.shuffle(arr);
-
-        const damage = Math.max(chooseCom[0].character.attack - arr[0].character.defence, chooseCom[0].character.attack * 0.1);
-        arr[0].character.health -= damage;
-        this.gamePlay.showDamage(arr[0].position, damage).then(() => {
-          if (arr[0].character.health <= 0) {
-            GameState.char.splice(GameState.char.indexOf(arr[0]), 1);
-          }
-          this.gamePlay.redrawPositions(GameState.char);
-        });
-      } else {
-        const moves = Team.shuffle(GameController.possible(chooseCom[0].character.stepMoves, chooseCom[0].position));
-        // eslint-disable-next-line prefer-destructuring
-        chooseCom[0].position = moves[0];
-        this.gamePlay.redrawPositions(GameState.char);
-      }
-
-      GameState.step = 'user';
+      this.paceCom();
     } else if (itemPlay) {
       GameState.itemPlay = itemPlay;
       GameState.possibleAttack = GameController.possible(itemPlay.character.stepAttack, index);
@@ -212,5 +179,60 @@ export default class GameController {
       }
     }
     return arr;
+  }
+
+  //  II logic
+  paceCom() {
+    const arrCom = [];
+    const arrPlay = [];
+    let arr = [];
+    GameState.char.forEach((el) => {
+      if (el.character.type === 'vampire' || el.character.type === 'undead' || el.character.type === 'daemon') {
+        arrCom.push(el);
+      }
+    });
+    GameState.char.forEach((el) => {
+      if (el.character.type === 'bowman' || el.character.type === 'magician' || el.character.type === 'swordsman') {
+        arrPlay.push(el);
+      }
+    });
+    if (arrCom.length === 0) {
+      arrPlay.forEach((el) => {
+        GameState.scores += el.character.health;
+      });
+      GamePlay.showMessage(`Вы выиграли и набрали всего ${GameState.scores} очков!`);
+      GameState.level++;
+      this.initSec();
+      return;
+    } if (arrPlay === 0) {
+      GamePlay.showMessage('Вы проиграли!');
+      return;
+    }
+    const chooseCom = shuffle(arrCom);
+
+    arrPlay.forEach((el) => {
+      if (GameController.possible(chooseCom[0].character.stepAttack, chooseCom[0].position).find((i) => i === el.position)) {
+        arr.push(el);
+      }
+    });
+    if (arr.length > 0) {
+      arr = shuffle(arr);
+
+      const damage = Math.max(chooseCom[0].character.attack - arr[0].character.defence, chooseCom[0].character.attack * 0.1);
+      arr[0].character.health -= damage;
+      this.gamePlay.showDamage(arr[0].position, damage).then(() => {
+        if (arr[0].character.health <= 0) {
+          GameState.char.splice(GameState.char.indexOf(arr[0]), 1);
+        }
+        this.gamePlay.redrawPositions(GameState.char);
+      });
+    } else {
+      const moves = shuffle(GameController.possible(chooseCom[0].character.stepMoves, chooseCom[0].position));
+      // eslint-disable-next-line prefer-destructuring
+      chooseCom[0].position = moves[0];
+      this.gamePlay.redrawPositions(GameState.char);
+    }
+
+    GameState.step = 'user';
   }
 }

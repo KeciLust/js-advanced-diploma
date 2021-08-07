@@ -1,33 +1,31 @@
-import PositionedCharacter from './PositionedCharacter';
-/**
- *
- *
- * @param allowedTypes iterable of classes
- * @param maxLevel max character level
- * @returns Character type children (ex. Magician, Bowman, etc)
- */
-export function* positionGenerator(positions) {
-  for (const position of positions) {
-    yield position;
-  }
-}
+/* eslint-disable no-proto */
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-plusplus */
+
 export function* characterGenerator(allowedTypes, maxLevel) {
   while (true) {
-    const item = Object.create(allowedTypes[Math.floor(Math.random() * 3)]);
+    const item = Object.create(allowedTypes[Math.floor(Math.random() * allowedTypes.length)]);
     item.level = Math.floor(Math.random() * maxLevel) + 1;
-
     yield item;
   }
 }
 
 export function generateTeam(allowedTypes, maxLevel, characterCount) {
   const item = characterGenerator(allowedTypes, maxLevel);
-  const pos = positionGenerator(allowedTypes.position);
   const arr = [];
-  // eslint-disable-next-line no-plusplus
   for (let i = 0; i < characterCount; i++) {
-    const char = new PositionedCharacter(item.next().value, pos.next().value);
+    const char = item.next().value;
+    char.attack = char.__proto__.attack + 5 * (char.level - 1);
+    char.defence = char.__proto__.defence + 5 * (char.level - 1);
+    char.health = char.__proto__.health;
     arr[i] = char;
+  }
+  return arr;
+}
+export function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
 }
