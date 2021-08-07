@@ -19,9 +19,21 @@ export default class GameController {
     GameState.from({
       char: new Team(5, 5).ranking(), level: 0, step: 'user', state: null, scores: 0,
     });
-
     this.gamePlay.drawUi(`${Object.values(themes)[GameState.level]}`);
+    this.gamePlay.redrawPositions(GameState.char);
+    this.gamePlay.addNewGameListener(this.init.bind(this));
+    this.gamePlay.addLoadGameListener(this.onLoad.bind(this));
+    this.gamePlay.addSaveGameListener(this.stateService.save.bind(this.stateService, GameState.save));
+    this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
+    this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
+    this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
+  }
 
+  initSec() {
+    this.gamePlay.cellClickListeners = [];
+    this.gamePlay.cellEnterListeners = [];
+    this.gamePlay.cellLeaveListeners = [];
+    this.gamePlay.drawUi(`${Object.values(themes)[GameState.level]}`);
     this.gamePlay.redrawPositions(GameState.char);
     this.gamePlay.addNewGameListener(this.init.bind(this));
     this.gamePlay.addLoadGameListener(this.onLoad.bind(this));
@@ -74,8 +86,12 @@ export default class GameController {
           GameState.scores += el.character.health;
         });
         GamePlay.showMessage(`Вы выиграли и набрали всего ${GameState.scores} очков!`);
+        GameState.level++;
+        this.initSec();
+        return;
       } if (arrPlay === 0) {
         GamePlay.showMessage('Вы проиграли!');
+        return;
       }
       const chooseCom = Team.shuffle(arrCom);
 
