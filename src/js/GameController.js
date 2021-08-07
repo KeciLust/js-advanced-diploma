@@ -232,7 +232,7 @@ export default class GameController {
       const moves = shuffle(GameController.possible(chooseCom.character.stepMoves, chooseCom.position));
       [...arrPlay, ...arrCom].forEach((el) => {
         if (GameController.possible(chooseCom.character.stepMoves, chooseCom.position).find((i) => i === el.position)) {
-          moves.splice(el.position, 1);
+          moves.splice(moves.indexOf(el.position), 1);
         }
       });
       // eslint-disable-next-line prefer-destructuring
