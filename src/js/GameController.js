@@ -45,7 +45,7 @@ export default class GameController {
     this.gamePlay.cellLeaveListeners = [];
     GameState.level++;
     GameState.maxLevel++;
-
+    GameState.step = 'user';
     if (GameState.level > 4) { GameState.level = 1; }
     let count;
     if (GameState.level === 1 || GameState.level === 2) { count = 1; } else { count = 2; }
