@@ -29,6 +29,7 @@ export default class GameController {
       scores: 0,
       maxLevel: 1,
     });
+    console.log(GameState.char);
     this.gamePlay.drawUi(`${Object.values(themes)[GameState.level - 1]}`);
     this.gamePlay.redrawPositions(GameState.char);
     this.gamePlay.addNewGameListener(this.init.bind(this));
@@ -45,13 +46,13 @@ export default class GameController {
     this.gamePlay.cellLeaveListeners = [];
     GameState.level++;
     GameState.maxLevel++;
-    GameState.step = 'user';
+
     if (GameState.level > 4) { GameState.level = 1; }
     let count;
     if (GameState.level === 1 || GameState.level === 2) { count = 1; } else { count = 2; }
     const newChar = new Team(count, GameState.maxLevel, [new Bowman(), new Magician(), new Swordsman()]).ranking();
     GameState.char = newChar;
-    this.gamePlay.drawUi(`${Object.values(themes)[GameState.level]}`);
+    this.gamePlay.drawUi(`${Object.values(themes)[GameState.level - 1]}`);
     this.gamePlay.redrawPositions(GameState.char);
     this.gamePlay.addNewGameListener(this.init.bind(this));
     this.gamePlay.addLoadGameListener(this.onLoad.bind(this));
@@ -62,11 +63,11 @@ export default class GameController {
   }
 
   onLoad() {
-    this.gamePlay.drawUi(`${Object.values(themes)[GameState.level]}`);
     const charLoad = this.stateService.load();
     GameState.from({
-      level: charLoad[0].level, char: charLoad[0].char, step: charLoad[0].step, state: charLoad[0].state,
+      level: charLoad[0].level, char: charLoad[0].char, step: charLoad[0].step, state: charLoad[0].state, scores: charLoad[0],
     });
+    this.gamePlay.drawUi(`${Object.values(themes)[GameState.level - 1]}`);
     this.gamePlay.redrawPositions(charLoad[0].char);
   }
 
@@ -203,6 +204,7 @@ export default class GameController {
       });
       GamePlay.showMessage(`Вы выиграли и набрали всего ${GameState.scores} очков!`);
       GameState.level++;
+      GameState.step = 'user';
       this.initSec();
       return;
     }
