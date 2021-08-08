@@ -46,7 +46,7 @@ export default class GameController {
     this.gamePlay.cellLeaveListeners = [];
     GameState.level++;
     GameState.maxLevel++;
-
+    console.log(GameState.level);
     if (GameState.level > 4) { GameState.level = 1; }
     let count;
     if (GameState.level === 1 || GameState.level === 2) { count = 1; } else { count = 2; }
@@ -112,7 +112,7 @@ export default class GameController {
       GameState.step = 'com';
       this.onCellClick(index);
     } else if (itemCom && GameState.possibleAttack && GameState.possibleAttack.includes(index)) {
-      const damage = Math.max(GameState.itemPlay.character.attack - itemCom.character.defence, GameState.itemPlay.character.attack * 0.1);
+      const damage = Math.round(Math.max(GameState.itemPlay.character.attack - itemCom.character.defence, GameState.itemPlay.character.attack * 0.1));
       GameState.itemCom = itemCom;
       GameState.itemCom.character.health -= damage;
       this.gamePlay.showDamage(index, damage).then(() => {
@@ -203,7 +203,6 @@ export default class GameController {
         GameState.scores += el.character.health;
       });
       GamePlay.showMessage(`Вы выиграли и набрали всего ${GameState.scores} очков!`);
-      GameState.level++;
       GameState.step = 'user';
       this.initSec();
       return;
@@ -225,6 +224,7 @@ export default class GameController {
             GamePlay.showMessage('Вы проиграли!');
             GamePlay.showMessage(`вы набрали ${GameState.scores} баллов!`);
             GamePlay.showMessage('Начните новую игру!');
+            this.gamePlay.redrawPositions(GameState.char);
             return;
           }
         }
