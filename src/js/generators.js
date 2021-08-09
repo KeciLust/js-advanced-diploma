@@ -19,6 +19,8 @@ export function generateTeam(allowedTypes, maxLevel, characterCount) {
     char.defence = char.__proto__.defence + 5 * (char.level - 1);
     char.health = char.__proto__.health + 5 * (char.level - 1);
     char.type = char.__proto__.type;
+    char.stepAttack = char.__proto__.stepAttack;
+    char.stepMoves = char.__proto__.stepMoves;
     arr[i] = char;
   }
   return arr;

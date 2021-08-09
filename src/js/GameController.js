@@ -20,6 +20,9 @@ export default class GameController {
     this.gamePlay.cellClickListeners = [];
     this.gamePlay.cellEnterListeners = [];
     this.gamePlay.cellLeaveListeners = [];
+    this.newGameListeners = [];
+    this.saveGameListeners = [];
+    this.loadGameListeners = [];
     GameState.char = null;
     GameState.from({
       level: 1,
@@ -29,12 +32,12 @@ export default class GameController {
       scores: 0,
       maxLevel: 1,
     });
-    console.log(GameState.char);
+
     this.gamePlay.drawUi(`${Object.values(themes)[GameState.level - 1]}`);
     this.gamePlay.redrawPositions(GameState.char);
     this.gamePlay.addNewGameListener(this.init.bind(this));
     this.gamePlay.addLoadGameListener(this.onLoad.bind(this));
-    this.gamePlay.addSaveGameListener(this.stateService.save.bind(this.stateService, GameState.save));
+    this.gamePlay.addSaveGameListener(this.onSave.bind(this));
     this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
     this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
     this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
@@ -44,9 +47,12 @@ export default class GameController {
     this.gamePlay.cellClickListeners = [];
     this.gamePlay.cellEnterListeners = [];
     this.gamePlay.cellLeaveListeners = [];
+    this.newGameListeners = [];
+    this.saveGameListeners = [];
+    this.loadGameListeners = [];
     GameState.level++;
     GameState.maxLevel++;
-    console.log(GameState.level);
+
     if (GameState.level > 4) { GameState.level = 1; }
     let count;
     if (GameState.level === 1 || GameState.level === 2) { count = 1; } else { count = 2; }
@@ -56,19 +62,24 @@ export default class GameController {
     this.gamePlay.redrawPositions(GameState.char);
     this.gamePlay.addNewGameListener(this.init.bind(this));
     this.gamePlay.addLoadGameListener(this.onLoad.bind(this));
-    this.gamePlay.addSaveGameListener(this.stateService.save.bind(this.stateService, GameState.save));
+    this.gamePlay.addSaveGameListener(this.onSave.bind(this));
     this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
     this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
     this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
   }
 
+  onSave() {
+    this.stateService.save(GameState.save);
+  }
+
   onLoad() {
-    const charLoad = this.stateService.load();
+    const charLoad = this.stateService.load()[0];
     GameState.from({
-      level: charLoad[0].level, char: charLoad[0].char, step: charLoad[0].step, state: charLoad[0].state, scores: charLoad[0],
+      level: charLoad.level, char: charLoad.char, step: charLoad.step, scores: charLoad.scores, maxLevel: charLoad.maxLevel,
     });
+
     this.gamePlay.drawUi(`${Object.values(themes)[GameState.level - 1]}`);
-    this.gamePlay.redrawPositions(charLoad[0].char);
+    this.gamePlay.redrawPositions(charLoad.char);
   }
 
   onCellClick(index) {
@@ -86,6 +97,7 @@ export default class GameController {
     const itemComIndex = GameState.char.findIndex(com);
     const itemPlay = GameState.char.find(play);
     const itemCom = GameState.char.find(com);
+
     if (GameState.step === 'com') {
       this.paceCom();
     } else if (itemPlay) {
