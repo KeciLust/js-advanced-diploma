@@ -52,7 +52,6 @@ export default class GameController {
     this.loadGameListeners = [];
     GameState.level++;
     GameState.maxLevel++;
-
     if (GameState.level > 4) { GameState.level = 1; }
     let count;
     if (GameState.level === 1 || GameState.level === 2) { count = 1; } else { count = 2; }
@@ -214,7 +213,8 @@ export default class GameController {
       arrPlay.forEach((el) => {
         GameState.scores += el.character.health;
       });
-      GamePlay.showMessage(`Вы выиграли и набрали всего ${GameState.scores} очков!`);
+      GamePlay.showMessage(`Ну ладно, ты кое как выиграл и набрал ${GameState.scores} очков!`);
+      GamePlay.showMessage('Но это ещё не всё. Ты всё равно проиграешь!');
       GameState.step = 'user';
       this.initSec();
       return;
@@ -233,9 +233,9 @@ export default class GameController {
         if (arrAttack.character.health <= 0) {
           GameState.char.splice(GameState.char.indexOf(arrAttack), 1);
           if (arrPlay.length === 1) {
-            GamePlay.showMessage('Вы проиграли!');
+            GamePlay.showMessage('Ну ты даёшь! Даже тут облажался! Лузер!!!');
             GamePlay.showMessage(`вы набрали ${GameState.scores} баллов!`);
-            GamePlay.showMessage('Начните новую игру!');
+            GamePlay.showMessage('Ну тыкни уже в кнопку "НАЧАТЬ НОВУЮ ИГРУ"!');
             this.gamePlay.redrawPositions(GameState.char);
             return;
           }
