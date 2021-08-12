@@ -20,9 +20,9 @@ export default class GameController {
     this.gamePlay.cellClickListeners = [];
     this.gamePlay.cellEnterListeners = [];
     this.gamePlay.cellLeaveListeners = [];
-    this.newGameListeners = [];
-    this.saveGameListeners = [];
-    this.loadGameListeners = [];
+    this.gamePlay.newGameListeners = [];
+    this.gamePlay.saveGameListeners = [];
+    this.gamePlay.loadGameListeners = [];
     GameState.char = null;
     GameState.from({
       level: 1,
@@ -47,9 +47,10 @@ export default class GameController {
     this.gamePlay.cellClickListeners = [];
     this.gamePlay.cellEnterListeners = [];
     this.gamePlay.cellLeaveListeners = [];
-    this.newGameListeners = [];
-    this.saveGameListeners = [];
-    this.loadGameListeners = [];
+    this.gamePlay.newGameListeners = [];
+    this.gamePlay.saveGameListeners = [];
+    this.gamePlay.loadGameListeners = [];
+
     GameState.level++;
     GameState.maxLevel++;
     if (GameState.level > 4) { GameState.level = 1; }
@@ -57,6 +58,7 @@ export default class GameController {
     if (GameState.level === 1 || GameState.level === 2) { count = 1; } else { count = 2; }
     const newChar = new Team(count, GameState.maxLevel, [new Bowman(), new Magician(), new Swordsman()]).ranking();
     GameState.char = newChar;
+
     this.gamePlay.drawUi(`${Object.values(themes)[GameState.level - 1]}`);
     this.gamePlay.redrawPositions(GameState.char);
     this.gamePlay.addNewGameListener(this.init.bind(this));
@@ -68,17 +70,29 @@ export default class GameController {
   }
 
   onSave() {
+    GameState.from({
+      level: GameState.level,
+      maxLevel: GameState.maxLevel,
+      char: GameState.char,
+      scores: GameState.scores,
+
+    });
+    this.stateService.storage.clear();
+
     this.stateService.save(GameState.save);
   }
 
   onLoad() {
-    const charLoad = this.stateService.load()[0];
+    console.log(GameState.char);
+    const charLoad = this.stateService.load();
+
     GameState.from({
-      level: charLoad.level, char: charLoad.char, step: charLoad.step, scores: charLoad.scores, maxLevel: charLoad.maxLevel,
+      level: charLoad[0].level, char: charLoad[0].char, step: charLoad[0].step, scores: charLoad[0].scores, maxLevel: charLoad[0].maxLevel,
     });
 
     this.gamePlay.drawUi(`${Object.values(themes)[GameState.level - 1]}`);
-    this.gamePlay.redrawPositions(charLoad.char);
+    this.gamePlay.redrawPositions(charLoad[0].char);
+    console.log(GameState.char);
   }
 
   onCellClick(index) {
