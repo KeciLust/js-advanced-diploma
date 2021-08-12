@@ -91,7 +91,6 @@ export default class GameController {
 
     this.gamePlay.drawUi(`${Object.values(themes)[GameState.level - 1]}`);
     this.gamePlay.redrawPositions(charLoad[0].char);
-    console.log(GameState.char);
   }
 
   onCellClick(index) {
