@@ -83,7 +83,6 @@ export default class GameController {
   }
 
   onLoad() {
-    console.log(GameState.char);
     const charLoad = this.stateService.load();
 
     GameState.from({
