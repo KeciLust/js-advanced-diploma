@@ -17,7 +17,7 @@ export default class GameController {
   }
 
   init() {
-    this.gamePlay.cellClickListeners = [];
+    this.gamePlay.cellClickListeners = [];q
     this.gamePlay.cellEnterListeners = [];
     this.gamePlay.cellLeaveListeners = [];
     this.gamePlay.newGameListeners = [];
